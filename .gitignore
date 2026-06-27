@@ -1,0 +1,16 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+runs/
+dataset/
+*.pt
+*.onnx
+*.engine
+*.ncnn/
+*_ncnn_model/
+
+.DS_Store
+Thumbs.db
