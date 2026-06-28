@@ -17,8 +17,8 @@ def parse_batch(value: str):
 
 
 def parse_args():
-    parser = ArgumentParser(description="Train YOLOv8n for Smart Retail Cart detection.")
-    parser.add_argument("--model", default="yolov8n.pt", help="Base YOLOv8 model.")
+    parser = ArgumentParser(description="Train YOLO11n for Smart Retail Cart detection.")
+    parser.add_argument("--model", default="yolo11n.pt", help="Base YOLO11 model.")
     parser.add_argument("--data", default=str(ROOT / "data" / "smart_retail_cart.yaml"), help="Dataset YAML path.")
     parser.add_argument("--epochs", type=int, default=50, help="Training epochs.")
     parser.add_argument("--imgsz", type=int, default=416, help="Training image size.")

@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def parse_args():
-    parser = ArgumentParser(description="Export YOLOv8 model for Smart Retail Cart inference.")
+    parser = ArgumentParser(description="Export YOLO11 model for Smart Retail Cart inference.")
     parser.add_argument("--model", default=str(ROOT / "runs" / "detect" / "train" / "weights" / "best.pt"))
     parser.add_argument("--imgsz", type=int, default=416)
     parser.add_argument("--device", default="cpu")

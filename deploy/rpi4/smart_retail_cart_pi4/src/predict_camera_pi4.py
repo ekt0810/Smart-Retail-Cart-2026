@@ -1,0 +1,121 @@
+import os
+from argparse import ArgumentParser
+from pathlib import Path
+from time import perf_counter
+
+os.environ.setdefault("OMP_NUM_THREADS", "4")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+
+import cv2
+from ultralytics import YOLO
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_MODELS = [
+    ROOT / "models" / "best_320_ncnn_model",
+    ROOT / "models" / "best_320.onnx",
+    ROOT / "models" / "best_416_ncnn_model",
+    ROOT / "models" / "best_416.onnx",
+    ROOT / "models" / "best.pt",
+]
+
+
+def default_model():
+    for path in DEFAULT_MODELS:
+        if path.exists():
+            return str(path)
+    return str(DEFAULT_MODELS[0])
+
+
+def parse_camera(value: str):
+    return int(value) if value.isdigit() else value
+
+
+def parse_args():
+    parser = ArgumentParser(description="Smart Retail Cart camera inference optimized for Raspberry Pi 4.")
+    parser.add_argument("--model", default=default_model())
+    parser.add_argument("--camera", default="0")
+    parser.add_argument("--conf", type=float, default=0.35)
+    parser.add_argument("--imgsz", type=int, default=320)
+    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--width", type=int, default=640)
+    parser.add_argument("--height", type=int, default=480)
+    parser.add_argument("--cv-threads", type=int, default=2)
+    parser.add_argument("--frame-skip", type=int, default=0, help="Skip grabbed frames before each inference.")
+    parser.add_argument("--no-display", action="store_true")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    cv2.setNumThreads(max(args.cv_threads, 0))
+
+    model = YOLO(args.model, task="detect")
+    cap = cv2.VideoCapture(parse_camera(args.camera))
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
+
+    if not cap.isOpened():
+        raise SystemExit(f"Could not open camera: {args.camera}")
+
+    fps = 0.0
+    last_time = perf_counter()
+    last_print = last_time
+
+    try:
+        while True:
+            for _ in range(max(args.frame_skip, 0)):
+                cap.grab()
+
+            ok, frame = cap.read()
+            if not ok:
+                print("Camera frame not available.")
+                break
+
+            result = model.predict(
+                frame,
+                conf=args.conf,
+                imgsz=args.imgsz,
+                device=args.device,
+                verbose=False,
+            )[0]
+
+            now = perf_counter()
+            frame_fps = 1.0 / max(now - last_time, 1e-6)
+            fps = frame_fps if fps == 0 else (0.9 * fps + 0.1 * frame_fps)
+            last_time = now
+
+            if args.no_display:
+                if now - last_print >= 1.0:
+                    detections = len(result.boxes) if result.boxes is not None else 0
+                    print(f"FPS: {fps:.1f} | detections: {detections}")
+                    last_print = now
+                continue
+
+            annotated = result.plot()
+            cv2.putText(
+                annotated,
+                f"FPS: {fps:.1f}",
+                (12, 32),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.9,
+                (0, 255, 0),
+                2,
+                cv2.LINE_AA,
+            )
+            cv2.imshow("Smart Retail Cart - Pi4", annotated)
+            if (cv2.waitKey(1) & 0xFF) in (27, ord("q")):
+                break
+    except KeyboardInterrupt:
+        pass
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()

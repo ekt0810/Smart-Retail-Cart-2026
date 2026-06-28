@@ -1,9 +1,9 @@
-# Placeholder for Roboflow YOLOv8 export.
-# After adding the dataset, update:
-# - nc: number of product classes
-# - names: class names in dataset order
 train: ../dataset/train/images
 val: ../dataset/valid/images
 test: ../dataset/test/images
-nc: 0
-names: []
+nc: 4
+names:
+  - apple
+  - hao_hao_noodles
+  - orange
+  - sprite

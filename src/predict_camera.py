@@ -14,7 +14,7 @@ def parse_camera(value: str):
 
 
 def parse_args():
-    parser = ArgumentParser(description="Run YOLOv8 product detection from a USB/Pi camera.")
+    parser = ArgumentParser(description="Run YOLO11 product detection from a USB/Pi camera.")
     parser.add_argument("--camera", default="0", help="OpenCV camera index or stream URL.")
     parser.add_argument("--model", default=str(ROOT / "runs" / "detect" / "train" / "weights" / "best.pt"))
     parser.add_argument("--conf", type=float, default=0.35)

@@ -1,10 +1,10 @@
 # Smart Retail Cart - 2026
 
-Minimal YOLOv8 pipeline for detecting supermarket products inside a shopping cart. The default model is `yolov8n.pt` for lightweight training/export and Raspberry Pi 4 CPU inference.
+Minimal YOLO11n pipeline for detecting supermarket products inside a shopping cart. The default model is `yolo11n.pt` for lightweight training/export and Raspberry Pi 4 CPU inference.
 
 ## Add Roboflow Dataset
 
-Export the dataset from Roboflow in YOLOv8 format, then unzip it to:
+Export the dataset from Roboflow in Ultralytics YOLO format, then unzip it to:
 
 ```text
 dataset/
