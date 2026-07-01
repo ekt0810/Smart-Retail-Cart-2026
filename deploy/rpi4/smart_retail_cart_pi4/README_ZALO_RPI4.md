@@ -9,6 +9,8 @@ Các sản phẩm model đang nhận diện:
 - `orange`
 - `sprite`
 
+Mặc định gói này dùng camera CSI gắn bằng dây ribbon trực tiếp lên board Raspberry Pi 4. Code đã chuyển sang `Picamera2/libcamera`, không còn mặc định dùng webcam USB qua OpenCV nữa.
+
 Mặc định nên chạy bản `NCNN 320px` vì nhẹ và nhanh nhất trên Raspberry Pi 4. Nếu cần nhận diện chính xác hơn, có thể chuyển sang bản `NCNN 416px`.
 
 ## 1. Giải Nén Gói
@@ -22,18 +24,28 @@ cd smart_retail_cart_pi4
 
 Khuyến nghị dùng Raspberry Pi OS 64-bit.
 
+Kiểm tra camera CSI trước:
+
+```bash
+rpicam-hello --timeout 5000
+```
+
+Nếu lệnh trên không mở được preview hoặc báo không thấy camera, kiểm tra lại dây ribbon, chiều cắm cáp, nguồn cấp và cấu hình camera trong Raspberry Pi OS.
+
 ```bash
 sudo apt update
-sudo apt install -y python3-venv python3-pip libgl1 libglib2.0-0
-python3 -m venv .venv
+sudo apt install -y python3-venv python3-pip python3-picamera2 python3-opencv libgl1 libglib2.0-0
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 python -m pip install -U pip
 pip install -r requirements-rpi.txt
 ```
 
+Phải tạo venv với `--system-site-packages` để Python thấy được thư viện `picamera2` cài bằng `apt`.
+
 Nếu cài `ncnn` bị lỗi, vẫn có thể chạy bằng ONNX ở bước fallback bên dưới.
 
-## 3. Chạy Camera
+## 3. Chạy Camera CSI
 
 Chạy bản nhanh nhất, khuyến nghị dùng đầu tiên:
 
@@ -60,6 +72,12 @@ bash run_camera_ncnn_320.sh --no-display
 ```
 
 Thoát cửa sổ camera bằng phím `q` hoặc `Esc`.
+
+Nếu cần quay lại webcam USB, dùng script riêng:
+
+```bash
+bash run_camera_usb_ncnn_320.sh
+```
 
 ## 4. Chạy Test Bằng Ảnh
 
@@ -94,6 +112,7 @@ models/best.pt                # model PyTorch gốc
 ## 6. Cấu Hình Mặc Định
 
 - Camera: `0`
+- Backend camera: `csi`
 - Độ phân giải camera: `640x480`
 - Kích thước inference: `320`
 - Ngưỡng confidence: `0.35`
@@ -117,13 +136,20 @@ bash run_camera_ncnn_416.sh
 Nếu camera không mở được, thử kiểm tra camera:
 
 ```bash
-ls /dev/video*
+rpicam-hello --timeout 5000
 ```
 
-Sau đó đổi camera index:
+Nếu có nhiều camera CSI, thử đổi camera index:
 
 ```bash
 bash run_camera_ncnn_320.sh --camera 1
+```
+
+Nếu dùng webcam USB thì mới kiểm tra:
+
+```bash
+ls /dev/video*
+bash run_camera_usb_ncnn_320.sh --camera 0
 ```
 
 ## 8. Ghi Chú

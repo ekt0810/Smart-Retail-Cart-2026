@@ -108,7 +108,7 @@ Gợi ý dùng trên Raspberry Pi:
 - `ONNX 320`: fallback nếu NCNN lỗi.
 - `NCNN 416`: chính xác hơn nhưng chậm hơn.
 
-## Chạy Trên Raspberry Pi 4
+## Chạy Trên Raspberry Pi 4 Bằng Camera CSI
 
 Gói deploy đã chuẩn bị sẵn tại:
 
@@ -122,7 +122,28 @@ File zip để gửi qua Zalo:
 deploy/rpi4/smart_retail_cart_pi4_zalo.zip
 ```
 
-Trên Raspberry Pi 4, ưu tiên chạy:
+Camera mặc định của gói này là camera CSI gắn bằng dây ribbon trực tiếp lên board Raspberry Pi 4, không phải webcam USB. Trên Raspberry Pi OS Bullseye/Bookworm, camera CSI nên chạy qua `Picamera2/libcamera`.
+
+Kiểm tra camera CSI trước:
+
+```bash
+rpicam-hello --timeout 5000
+```
+
+Cài môi trường trên Pi:
+
+```bash
+sudo apt update
+sudo apt install -y python3-venv python3-pip python3-picamera2 python3-opencv libgl1 libglib2.0-0
+python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
+python -m pip install -U pip
+pip install -r requirements-rpi.txt
+```
+
+Lưu ý quan trọng: cần `--system-site-packages` để Python trong virtualenv nhìn thấy `picamera2` được cài bằng `apt`.
+
+Trên Raspberry Pi 4 với camera CSI, ưu tiên chạy:
 
 ```bash
 bash run_camera_ncnn_320.sh
@@ -140,9 +161,16 @@ Nếu cần chính xác hơn:
 bash run_camera_ncnn_416.sh
 ```
 
+Nếu muốn dùng lại webcam USB thay vì CSI:
+
+```bash
+bash run_camera_usb_ncnn_320.sh
+```
+
 Mặc định tối ưu cho Pi4:
 
 - CPU inference, không dùng CUDA.
+- Camera CSI qua `Picamera2`.
 - Camera `640x480`.
 - `imgsz 320`.
 - `conf 0.35`.

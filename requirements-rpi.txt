@@ -2,3 +2,5 @@ ultralytics>=8.3.0
 opencv-python>=4.8.0
 onnxruntime>=1.17.0
 numpy>=1.24.0
+# CSI camera on Raspberry Pi uses Picamera2 installed by apt:
+# sudo apt install -y python3-picamera2 --no-install-recommends
