@@ -116,12 +116,6 @@ Gói deploy đã chuẩn bị sẵn tại:
 deploy/rpi4/smart_retail_cart_pi4/
 ```
 
-File zip để gửi qua Zalo:
-
-```text
-deploy/rpi4/smart_retail_cart_pi4_zalo.zip
-```
-
 Camera mặc định của gói này là camera CSI gắn bằng dây ribbon trực tiếp lên board Raspberry Pi 4, không phải webcam USB. Trên Raspberry Pi OS Bullseye/Bookworm, camera CSI nên chạy qua `Picamera2/libcamera`.
 
 Kiểm tra camera CSI trước:

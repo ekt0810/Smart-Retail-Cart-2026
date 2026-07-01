@@ -17,7 +17,6 @@ dataset/
 !deploy/rpi4/smart_retail_cart_pi4/models/*.onnx
 !deploy/rpi4/smart_retail_cart_pi4/models/*_ncnn_model/
 !deploy/rpi4/smart_retail_cart_pi4/models/*_ncnn_model/**
-!deploy/rpi4/smart_retail_cart_pi4_zalo.zip
 
 .DS_Store
 Thumbs.db
