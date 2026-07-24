@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-python3 src/predict_camera_pi4.py \
-  --model models/best_320_ncnn_model \
+PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_BIN="${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  PYTHON_BIN=python3
+fi
+
+exec "$PYTHON_BIN" "$PROJECT_DIR/src/predict_camera_pi4.py" \
+  --model "$PROJECT_DIR/models/best_320_ncnn_model" \
   --backend csi \
   --imgsz 320 \
   --camera 0 \
