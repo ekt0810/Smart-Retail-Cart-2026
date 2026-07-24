@@ -105,7 +105,7 @@ python src/export_model.py --model runs/detect/train/weights/best.pt --imgsz 416
 Gợi ý dùng trên Raspberry Pi:
 
 - `NCNN 320`: nhanh nhất, ưu tiên FPS.
-- `ONNX 320`: fallback nếu NCNN lỗi.
+- `ONNX 320`: fallback tùy chọn trên Raspberry Pi OS 64-bit.
 - `NCNN 416`: chính xác hơn nhưng chậm hơn.
 
 ## Chạy Trên Raspberry Pi 4 Bằng Camera CSI
@@ -124,18 +124,14 @@ Kiểm tra camera CSI trước:
 rpicam-hello --timeout 5000
 ```
 
-Cài môi trường trên Pi:
+Cài môi trường trên Pi (chạy ngay trong thư mục gói deploy):
 
 ```bash
-sudo apt update
-sudo apt install -y python3-venv python3-pip python3-picamera2 python3-opencv libgl1 libglib2.0-0
-python3 -m venv --system-site-packages .venv
-source .venv/bin/activate
-python -m pip install -U pip
-pip install -r requirements-rpi.txt
+cd deploy/rpi4/smart_retail_cart_pi4
+bash install_rpi.sh
 ```
 
-Lưu ý quan trọng: cần `--system-site-packages` để Python trong virtualenv nhìn thấy `picamera2` được cài bằng `apt`.
+Script cài đặt tạo `.venv` với `Picamera2` từ Raspberry Pi OS, đồng thời cài NCNN và OpenCV từ wheel có sẵn cho Pi. Đường chạy NCNN mặc định không dùng Ultralytics/PyTorch, nên chạy được cả Raspberry Pi OS 32-bit và 64-bit.
 
 Trên Raspberry Pi 4 với camera CSI, ưu tiên chạy:
 
@@ -143,11 +139,15 @@ Trên Raspberry Pi 4 với camera CSI, ưu tiên chạy:
 bash run_camera_ncnn_320.sh
 ```
 
-Nếu NCNN không chạy:
+Nếu cần dùng ONNX trên Raspberry Pi OS 64-bit, cài thêm runtime trước:
 
 ```bash
+cd deploy/rpi4/smart_retail_cart_pi4
+.venv/bin/python -m pip install -r requirements-rpi-onnx.txt
 bash run_camera_onnx_320.sh
 ```
+
+`onnxruntime` không có wheel cho Raspberry Pi OS 32-bit; trên hệ này hãy dùng các script NCNN.
 
 Nếu cần chính xác hơn:
 
@@ -161,6 +161,8 @@ Nếu muốn dùng lại webcam USB thay vì CSI:
 bash run_camera_usb_ncnn_320.sh
 ```
 
+Các script có thể gọi từ bất kỳ thư mục nào. Khi chạy qua SSH không có màn hình, chúng tự chuyển sang chế độ không hiển thị và in FPS mỗi giây. Thêm `--display` nếu Pi đang có màn hình desktop.
+
 Mặc định tối ưu cho Pi4:
 
 - CPU inference, không dùng CUDA.
@@ -169,6 +171,13 @@ Mặc định tối ưu cho Pi4:
 - `imgsz 320`.
 - `conf 0.35`.
 - Model mặc định: `best_320_ncnn_model`.
+
+Test model trước khi mở camera:
+
+```bash
+cd deploy/rpi4/smart_retail_cart_pi4
+bash run_test_image.sh
+```
 
 ## Test Ảnh
 

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from ultralytics import YOLO
+from ncnn_detector import create_detector
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,36 +26,48 @@ def parse_args():
     parser.add_argument("--model", default=default_model())
     parser.add_argument("--source", required=True)
     parser.add_argument("--conf", type=float, default=0.35)
+    parser.add_argument("--iou", type=float, default=0.7)
     parser.add_argument("--imgsz", type=int, default=320)
-    parser.add_argument("--device", default="cpu")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    model = YOLO(args.model, task="detect")
-    results = model.predict(
-        source=args.source,
-        conf=args.conf,
-        imgsz=args.imgsz,
-        device=args.device,
-        save=True,
-        project=str(ROOT / "runs"),
-        name="predict",
-        exist_ok=True,
-    )
+    import cv2
 
-    print(f"Processed {len(results)} image(s). Output: {ROOT / 'runs' / 'predict'}")
-    for result in results:
-        print(Path(result.path).name)
-        if result.boxes is None or len(result.boxes) == 0:
-            print("  no detections")
+    source = Path(args.source)
+    if not source.exists():
+        raise SystemExit(f"Image or directory not found: {source}")
+    image_extensions = {".bmp", ".jpeg", ".jpg", ".png", ".webp"}
+    images = [source] if source.is_file() else sorted(path for path in source.iterdir() if path.suffix.lower() in image_extensions)
+    if not images:
+        raise SystemExit(f"No supported images found in: {source}")
+
+    try:
+        detector = create_detector(args.model, args.imgsz, args.conf, args.iou)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    output_dir = ROOT / "runs" / "predict"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for image_path in images:
+        frame = cv2.imread(str(image_path))
+        if frame is None:
+            print(f"Skipped unreadable image: {image_path.name}")
             continue
-        for box in result.boxes:
-            cls_id = int(box.cls[0].item())
-            conf = float(box.conf[0].item())
-            name = model.names[cls_id]
-            print(f"  {name}: {conf:.3f}")
+        detections = detector.predict(frame)
+        from ncnn_detector import annotate
+
+        output_path = output_dir / image_path.name
+        if not cv2.imwrite(str(output_path), annotate(frame, detections, detector.names)):
+            raise RuntimeError(f"Could not write output image: {output_path}")
+        print(image_path.name)
+        if not detections:
+            print("  no detections")
+        for detection in detections:
+            name = detector.names[detection.class_id] if detection.class_id < len(detector.names) else str(detection.class_id)
+            print(f"  {name}: {detection.confidence:.3f}")
+
+    print(f"Output: {output_dir}")
 
 
 if __name__ == "__main__":

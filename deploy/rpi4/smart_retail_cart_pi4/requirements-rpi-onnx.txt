@@ -1,0 +1,5 @@
+-r requirements-rpi.txt
+
+# Optional fallback only. ONNX Runtime has no Pi OS 32-bit wheel, so do not
+# install this file on a 32-bit Raspberry Pi OS image.
+onnxruntime>=1.17

@@ -1,7 +1,9 @@
-ultralytics>=8.3.0
-opencv-python>=4.8.0
-onnxruntime>=1.17.0
-numpy>=1.24.0
+# piwheels supplies pre-built OpenCV and NCNN packages for Raspberry Pi OS 32-bit.
+--extra-index-url https://www.piwheels.org/simple
+
+# Raspberry Pi OS Bookworm ships Picamera2 with NumPy 1.x. Trixie uses Python
+# 3.13 and NumPy 2.x, for which NumPy 1.x has no binary wheel.
+numpy>=1.24,<2; python_version < "3.13"
+numpy>=2; python_version >= "3.13"
+opencv-python>=4.8,<4.12
 ncnn
-# CSI camera on Raspberry Pi uses Picamera2 installed by apt:
-# sudo apt install -y python3-picamera2 --no-install-recommends
